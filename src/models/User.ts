@@ -1,22 +1,28 @@
+import { NextFunction } from "express";
+
 import mongoose from 'mongoose'
 
-import validator from 'validator'
+import jsonwebtoken from "jsonwebtoken";
 
-import bcryptjs from 'bcryptjs'
+import validator from "validator";
 
-import jsonwebtoken from 'jsonwebtoken'
+import bcryptjs from "bcryptjs";
 
-import { v4 } from 'uuid'
+import { v4 } from "uuid";
 
-import sendMail from '../mail/sendMail'
+import Item from "./Item";
 
-import { welcomeMail, exitMail } from '../mail/mailTypes'
+import sendMail from "../mail/sendMail";
+
+import { exitMail, welcomeMail } from "../mail/mailTypes";
+
 
 const siteName: any = process.env.SITE_NAME
 
 const host: any = process.env.HOST
 
-const jwtSecret: any = process.env.JWT_SECRET
+const secret: any = process.env.JWT_SECRET
+
 
 // Sets up user schema
 const userSchemer = new mongoose.Schema({
@@ -63,7 +69,17 @@ const userSchemer = new mongoose.Schema({
 
     required: true,
 
-    minlength: 5,
+    minlength: 4,
+
+    validate(value: string) {
+
+      if (value.toLowerCase().includes('password')) {
+
+        throw new Error('Password must not include "password"')
+
+      }
+
+    },
 
   },
 
@@ -109,9 +125,9 @@ const userSchemer = new mongoose.Schema({
 
 
 // Create Virtual relationship with Item
-userSchemer.virtual('tasks', {
+userSchemer.virtual('items', {
 
-  ref: 'Task',
+  ref: 'Item',
 
   localField: '_id',
 
@@ -121,13 +137,13 @@ userSchemer.virtual('tasks', {
 
 
 // Generate Authentication Token
-userSchemer.methods.generateAuthToken = async function (): Promise<string> {
+userSchemer.methods.generateAuthToken = async function () {
 
   const user = this
 
-  const token = jsonwebtoken.sign({ _id: user.id.toString() }, jwtSecret, {})
+  const token = jsonwebtoken.sign({ _id: user.id.toString() }, secret, {})
 
-  user.tokens.push({ token })
+  user.tokens = user.tokens.concat({ token })
 
   await user.save()
 
@@ -137,7 +153,7 @@ userSchemer.methods.generateAuthToken = async function (): Promise<string> {
 
 
 // Private profile
-userSchemer.methods.toJSON = function (): JSON {
+userSchemer.methods.toJSON = function () {
 
   const user = this
 
@@ -159,7 +175,7 @@ userSchemer.methods.toJSON = function (): JSON {
 
 
 // Public profile
-userSchemer.methods.toPublicJSON = function (): JSON {
+userSchemer.methods.toPublicJSON = function () {
 
   const user = this
 
@@ -181,7 +197,7 @@ userSchemer.methods.toPublicJSON = function (): JSON {
 
 
 // send verification mail
-userSchemer.methods.sendVerificationEmail = async function (): Promise<Object> {
+userSchemer.methods.sendVerificationEmail = async function () {
 
   const user = this
 
@@ -206,7 +222,7 @@ userSchemer.methods.sendVerificationEmail = async function (): Promise<Object> {
 
 
 // send verification mail
-userSchemer.methods.sendExitEmail = async function (): Promise<Object> {
+userSchemer.methods.sendExitEmail = async function () {
 
   const user = this
 
@@ -246,12 +262,27 @@ userSchemer.statics.findbyCredentials = async (email, password) => {
 }
 
 
+
 // Hash password
 userSchemer.pre('save', async function (next) {
 
+  // @ts-ignore
   const user = this
 
   if (user.isModified('password')) user.password = await bcryptjs.hash(user.password, 8)
+
+  next()
+
+})
+
+
+// Delete (cascade) tasks
+userSchemer.pre('remove', async function (next) {
+
+  // @ts-ignore
+  const user = this
+
+  await Item.deleteMany({ owner: user._id })
 
   next()
 

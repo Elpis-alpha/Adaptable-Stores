@@ -15,7 +15,6 @@ const delay_1 = __importDefault(require("./middleware/delay"));
 const user_1 = __importDefault(require("./routers/user"));
 const _404_1 = __importDefault(require("./routers/404"));
 const normal_1 = __importDefault(require("./routers/normal"));
-const task_1 = __importDefault(require("./routers/task"));
 // Acquire an instance of Express
 const app = (0, express_1.default)();
 // Acquires the port on which the application runs
@@ -50,8 +49,6 @@ if (!isProduction) {
 app.use(user_1.default);
 // Automatically allows normal routes
 app.use(normal_1.default);
-// Automatically allows task routes
-app.use(task_1.default);
 // Automatically allows 404 routes
 app.use(_404_1.default);
 // Listening Server

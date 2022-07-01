@@ -21,8 +21,6 @@ import _404Router from './routers/404';
 
 import normalRouter from './routers/normal';
 
-import taskRouter from './routers/task';
-
 
 // Acquire an instance of Express
 const app: Express = express();
@@ -86,10 +84,6 @@ app.use(userRouter)
 
 // Automatically allows normal routes
 app.use(normalRouter)
-
-
-// Automatically allows task routes
-app.use(taskRouter)
 
 
 // Automatically allows 404 routes

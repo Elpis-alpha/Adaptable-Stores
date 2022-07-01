@@ -13,15 +13,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const validator_1 = __importDefault(require("validator"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const uuid_1 = require("uuid");
+const Item_1 = __importDefault(require("./Item"));
 const sendMail_1 = __importDefault(require("../mail/sendMail"));
 const mailTypes_1 = require("../mail/mailTypes");
 const siteName = process.env.SITE_NAME;
 const host = process.env.HOST;
-const jwtSecret = process.env.JWT_SECRET;
+const secret = process.env.JWT_SECRET;
 // Sets up user schema
 const userSchemer = new mongoose_1.default.Schema({
     name: {
@@ -45,7 +46,12 @@ const userSchemer = new mongoose_1.default.Schema({
         type: String,
         trim: true,
         required: true,
-        minlength: 5,
+        minlength: 4,
+        validate(value) {
+            if (value.toLowerCase().includes('password')) {
+                throw new Error('Password must not include "password"');
+            }
+        },
     },
     tokens: [
         {
@@ -68,8 +74,8 @@ const userSchemer = new mongoose_1.default.Schema({
     },
 }, { timestamps: true });
 // Create Virtual relationship with Item
-userSchemer.virtual('tasks', {
-    ref: 'Task',
+userSchemer.virtual('items', {
+    ref: 'Item',
     localField: '_id',
     foreignField: 'owner'
 });
@@ -77,8 +83,8 @@ userSchemer.virtual('tasks', {
 userSchemer.methods.generateAuthToken = function () {
     return __awaiter(this, void 0, void 0, function* () {
         const user = this;
-        const token = jsonwebtoken_1.default.sign({ _id: user.id.toString() }, jwtSecret, {});
-        user.tokens.push({ token });
+        const token = jsonwebtoken_1.default.sign({ _id: user.id.toString() }, secret, {});
+        user.tokens = user.tokens.concat({ token });
         yield user.save();
         return token;
     });
@@ -152,9 +158,19 @@ userSchemer.statics.findbyCredentials = (email, password) => __awaiter(void 0, v
 // Hash password
 userSchemer.pre('save', function (next) {
     return __awaiter(this, void 0, void 0, function* () {
+        // @ts-ignore
         const user = this;
         if (user.isModified('password'))
             user.password = yield bcryptjs_1.default.hash(user.password, 8);
+        next();
+    });
+});
+// Delete (cascade) tasks
+userSchemer.pre('remove', function (next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // @ts-ignore
+        const user = this;
+        yield Item_1.default.deleteMany({ owner: user._id });
         next();
     });
 });
