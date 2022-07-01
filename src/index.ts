@@ -17,6 +17,12 @@ import delay from './middleware/delay';
 
 import userRouter from './routers/user';
 
+import cartRouter from './routers/cart';
+
+import itemRouter from './routers/item';
+
+import orderRouter from './routers/order';
+
 import _404Router from './routers/404';
 
 import normalRouter from './routers/normal';
@@ -80,6 +86,18 @@ if (!isProduction) { app.use(delay) }
 
 // Automatically allows user routers
 app.use(userRouter)
+
+
+// Automatically allows cart routes
+app.use(cartRouter)
+
+
+// Automatically allows item routes
+app.use(itemRouter)
+
+
+// Automatically allows normal routes
+app.use(orderRouter)
 
 
 // Automatically allows normal routes

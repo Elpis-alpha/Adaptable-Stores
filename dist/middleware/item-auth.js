@@ -15,4 +15,4 @@ const itemAuth = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         return (0, errors_1.errorJson)(res, 401);
     next();
 });
-module.exports = itemAuth;
+exports.default = itemAuth;

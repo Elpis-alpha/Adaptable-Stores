@@ -26,4 +26,4 @@ const authCart = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
-module.exports = authCart
+export default authCart

@@ -18,6 +18,7 @@ const sharp_1 = __importDefault(require("sharp"));
 const User_1 = __importDefault(require("../models/User"));
 const auth_1 = __importDefault(require("../middleware/auth"));
 const errors_1 = require("../middleware/errors");
+const Cart_1 = __importDefault(require("../models/Cart"));
 const router = express_1.default.Router();
 const upload = (0, multer_1.default)({
     limits: { fileSize: 20000000 },
@@ -32,9 +33,10 @@ router.post('/api/users/create', (req, res) => __awaiter(void 0, void 0, void 0,
     const user = new User_1.default(req.body);
     try {
         yield user.save();
+        const cart = new Cart_1.default({ items: [], owner: user._id });
         const token = yield user.generateAuthToken();
         const verifyUser = yield user.sendVerificationEmail();
-        res.status(201).send({ user, token, verifyUser });
+        res.status(201).send({ user, token, cart, verifyUser });
     }
     catch (error) {
         return (0, errors_1.errorJson)(res, 400);
@@ -115,7 +117,7 @@ router.get('/api/users/find', (req, res) => __awaiter(void 0, void 0, void 0, fu
 // Sends patch request to update users
 router.patch('/api/users/update', auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const updates = Object.keys(req.body);
-    const allowedUpdate = ['name'];
+    const allowedUpdate = ['name', 'email'];
     const isValidOp = updates.every(item => allowedUpdate.includes(item));
     if (!isValidOp)
         return res.status(400).send({ error: 'Invalid Updates', allowedUpdates: allowedUpdate });

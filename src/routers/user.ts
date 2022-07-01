@@ -12,6 +12,9 @@ import { errorJson } from '../middleware/errors'
 
 import { MyUser } from '../models/_model_types';
 
+import Cart from '../models/Cart';
+
+
 
 const router: Router = express.Router()
 
@@ -39,11 +42,13 @@ router.post('/api/users/create', async (req, res) => {
 
     await user.save()
 
+    const cart = new Cart({ items: [], owner: user._id })
+
     const token = await user.generateAuthToken()
 
     const verifyUser = await user.sendVerificationEmail()
 
-    res.status(201).send({ user, token, verifyUser })
+    res.status(201).send({ user, token, cart, verifyUser })
 
   } catch (error) {
 
@@ -182,7 +187,7 @@ router.patch('/api/users/update', auth, async (req, res) => {
 
   const updates = Object.keys(req.body)
 
-  const allowedUpdate = ['name']
+  const allowedUpdate = ['name', 'email']
 
   const isValidOp = updates.every(item => allowedUpdate.includes(item))
 

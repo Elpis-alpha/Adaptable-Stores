@@ -25,4 +25,4 @@ const authCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
         return errorJson(res, 404);
     }
 });
-module.exports = authCart;
+exports.default = authCart;

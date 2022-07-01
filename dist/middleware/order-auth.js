@@ -25,4 +25,4 @@ const authOrder = (req, res, next) => __awaiter(void 0, void 0, void 0, function
         return errorJson(res, 404);
     }
 });
-module.exports = authOrder;
+exports.default = authOrder;

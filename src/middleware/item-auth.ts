@@ -10,4 +10,4 @@ const itemAuth = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
-module.exports = itemAuth
+export default itemAuth

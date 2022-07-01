@@ -32,17 +32,39 @@ export interface MyUser {
 
 }
 
-export interface MyTask {
+export interface MyCart {
+
+  _id: string
+
+  items: {
+
+    productID: string,
+
+    name: string,
+
+    quantity: number
+
+  }[],
+
+  toJSON: () => Object,
+
+  save: () => Promise<void>,
+
+}
+
+export interface MyItem {
 
   _id: string
 
   title: string,
 
+  category: string,
+
   description: string,
 
-  completed: boolean,
+  price: number,
 
-  endDate: Date | undefined,
+  pictures: Buffer[],
 
   toJSON: () => Object,
 

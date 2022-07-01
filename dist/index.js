@@ -13,6 +13,9 @@ const chalk_1 = __importDefault(require("chalk"));
 const cors_1 = __importDefault(require("cors"));
 const delay_1 = __importDefault(require("./middleware/delay"));
 const user_1 = __importDefault(require("./routers/user"));
+const cart_1 = __importDefault(require("./routers/cart"));
+const item_1 = __importDefault(require("./routers/item"));
+const order_1 = __importDefault(require("./routers/order"));
 const _404_1 = __importDefault(require("./routers/404"));
 const normal_1 = __importDefault(require("./routers/normal"));
 // Acquire an instance of Express
@@ -47,6 +50,12 @@ if (!isProduction) {
 }
 // Automatically allows user routers
 app.use(user_1.default);
+// Automatically allows cart routes
+app.use(cart_1.default);
+// Automatically allows item routes
+app.use(item_1.default);
+// Automatically allows normal routes
+app.use(order_1.default);
 // Automatically allows normal routes
 app.use(normal_1.default);
 // Automatically allows 404 routes

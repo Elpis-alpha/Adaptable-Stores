@@ -26,4 +26,4 @@ const authOrder = async (req: Request, res: Response, next: NextFunction) => {
 
 }
 
-module.exports = authOrder
+export default authOrder
