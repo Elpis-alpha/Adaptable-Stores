@@ -49,7 +49,7 @@ const errorJson = (res, code = 404, message) => {
             break;
     }
     if (message)
-        error = `${message}. ${error}`;
+        error = `${error}. ${message}`;
     return res.status(code).send({ error });
 };
 exports.errorJson = errorJson;

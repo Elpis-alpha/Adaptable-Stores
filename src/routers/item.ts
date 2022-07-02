@@ -49,22 +49,18 @@ router.get('/api/items/get-all', async (req, res) => {
 
   }
 
+  // @ts-ignore
+  const limit: any = req.query.limit ? parseInt(req.query.limit) : undefined
+
+  // @ts-ignore
+  const skip: any = req.query.skip ? parseInt(req.query.skip) : undefined
+
   try {
 
-    await Item.find({}, {
-
-      // @ts-ignore
-      limit: parseInt(req.query.limit),
-
-      // @ts-ignore
-      skip: parseInt(req.query.skip),
-
-      sort
-
-    })
+    const items: MyItem[] = await Item.find({}).limit(limit).skip(skip)
 
     // @ts-ignore
-    res.send(req.user.items)
+    res.send(items) 
 
   } catch (error) {
 
@@ -112,16 +108,13 @@ router.patch('/api/items/update', itemAuth, async (req, res) => {
 
   try {
 
-    // @ts-ignore
-    const user: MyUser = req.user
+    const item: (MyItem | null) = await Item.findOne({ _id })
 
-    const item: (MyItem | null) = await Item.findOne({ _id, owner: user._id })
+    if (!item) return errorJson(res, 404, "Product (Item) not found")
 
-    if (!item) return errorJson(res, 404)
-    
     // @ts-ignore
-    updates.forEach(item => item[item] = req.body[item])
-    
+    updates.forEach(up => item[up] = req.body[up])
+
     await item.save()
 
     res.status(201).send(item)
@@ -144,7 +137,7 @@ router.delete('/api/items/delete', itemAuth, async (req, res) => {
 
     const item: (MyItem | null) = await Item.findOneAndDelete({ _id })
 
-    if (!item) return errorJson(res, 404)
+    if (!item) return errorJson(res, 404, "Product (Item) not found")
 
     res.send(item)
 

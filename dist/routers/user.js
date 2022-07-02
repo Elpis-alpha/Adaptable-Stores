@@ -34,6 +34,7 @@ router.post('/api/users/create', (req, res) => __awaiter(void 0, void 0, void 0,
     try {
         yield user.save();
         const cart = new Cart_1.default({ items: [], owner: user._id });
+        yield cart.save();
         const token = yield user.generateAuthToken();
         const verifyUser = yield user.sendVerificationEmail();
         res.status(201).send({ user, token, cart, verifyUser });

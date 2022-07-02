@@ -33,7 +33,7 @@ router.post('/api/cart/add', auth_1.default, cart_auth_1.default, (req, res) => 
         const item = yield Item_1.default.findOne({ _id });
         if (!item)
             return res.status(404).send();
-        const uItem = cart.items.find(itemX => item._id === itemX.productID);
+        const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID);
         if (uItem) {
             uItem.quantity = uItem.quantity + qty;
         }
@@ -53,11 +53,21 @@ router.post('/api/cart/add', auth_1.default, cart_auth_1.default, (req, res) => 
 }));
 // Sends delete request to remove item from cart
 router.delete('/api/cart/remove', auth_1.default, cart_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const _id = req.query._id;
     try {
         // @ts-ignore
         const cart = req.cart;
-        cart.items = cart.items.filter(item => item.productID !== _id);
+        const { _id, qty } = req.body;
+        // @ts-ignore
+        const item = yield Item_1.default.findOne({ _id });
+        const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID);
+        if (uItem) {
+            if (uItem.quantity <= qty) {
+                cart.items = cart.items.filter(item => item.productID !== _id);
+            }
+            else {
+                uItem.quantity = uItem.quantity - qty;
+            }
+        }
         yield cart.save();
         res.send(cart);
     }

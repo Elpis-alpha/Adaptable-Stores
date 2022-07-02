@@ -8,6 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -32,36 +39,49 @@ router.get('/api/order/get', auth_1.default, order_auth_1.default, (req, res) =>
 }));
 // Sends post request to add item to order
 router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var e_1, _a;
     try {
         // @ts-ignore
         const cart = req.cart;
         // @ts-ignore
         const user = req.user;
         const { source } = req.body;
-        const email = user.email;
+        const receipt_email = user.email;
         let amount = 0;
         const orderItems = [];
-        for (const item of cart.items) {
-            const product = yield Item_1.default.findOne({ _id: item.productID });
-            if (!product)
-                return (0, errors_1.errorJson)(res, 404);
-            orderItems.push({
-                productID: product._id,
-                name: product.title,
-                quantity: item.quantity,
-                price: product.price
-            });
-            amount += (product.price * item.quantity);
+        try {
+            for (var _b = __asyncValues(cart.items), _c; _c = yield _b.next(), !_c.done;) {
+                const item = _c.value;
+                const product = yield Item_1.default.findOne({ _id: item.productID });
+                if (!product)
+                    continue;
+                orderItems.push({
+                    productID: product._id,
+                    name: product.title,
+                    quantity: item.quantity,
+                    price: product.price
+                });
+                amount += (product.price * item.quantity);
+            }
         }
-        console.log(amount);
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) yield _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
         if (cart.items.length > 0) {
+            if (!source)
+                return (0, errors_1.errorJson)(res, 400, "Source not provided");
             const charge = yield stripe.charges.create({
                 amount, currency: "usd",
-                source, receipt_email: email
+                source, receipt_email
             });
             if (!charge)
-                throw new Error('bats-payment');
+                return (0, errors_1.errorJson)(res, 502, "Stripe Charge Creation Failed");
             if (charge) {
+                console.log(charge);
                 const order = yield Order_1.default.create({
                     owner: user._id, items: orderItems
                 });
@@ -71,7 +91,7 @@ router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) =>
             }
         }
         else {
-            return (0, errors_1.errorJson)(res, 500);
+            return (0, errors_1.errorJson)(res, 400, "Cart is Empty");
         }
     }
     catch (error) {

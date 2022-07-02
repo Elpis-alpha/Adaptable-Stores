@@ -43,7 +43,7 @@ export const errorJson = (res: Response, code = 404, message?: string) => {
 
   }
 
-  if (message) error = `${message}. ${error}`
+  if (message) error = `${error}. ${message}`
 
   return res.status(code).send({ error })
 

@@ -8,21 +8,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const Cart = require('../models/Cart');
-const { errorJson } = require('./errors');
+const errors_1 = require("./errors");
+const Cart_1 = __importDefault(require("../models/Cart"));
 const authCart = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // @ts-ignore
-        const cart = yield Cart.find({ owner: req.user._id });
+        const cart = yield Cart_1.default.findOne({ owner: req.user._id });
         if (!cart)
-            return errorJson(res, 404);
+            return (0, errors_1.errorJson)(res, 404, "Cart not Available");
         // @ts-ignore
         req.cart = cart;
         next();
     }
     catch (error) {
-        return errorJson(res, 404);
+        return (0, errors_1.errorJson)(res, 404);
     }
 });
 exports.default = authCart;

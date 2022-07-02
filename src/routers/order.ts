@@ -28,7 +28,7 @@ const stripe = new Stripe(stripeKey, {
 })
 
 // Sends get request to get a order
-router.get('/api/order/get', auth, orderAuth, async (req, res) => {
+router.get('/api/order/get', auth, orderAuth, async (req, res) => {  
 
   // @ts-ignore
   res.send(req.order)
@@ -49,17 +49,17 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
     const { source } = req.body
 
-    const email = user.email
+    const receipt_email = user.email
 
     let amount = 0
 
     const orderItems = []
 
-    for (const item of cart.items) {
+    for await (const item of cart.items) {
 
       const product: (MyItem | null) = await Item.findOne({ _id: item.productID })
 
-      if (!product) return errorJson(res, 404)
+      if (!product) continue
 
       orderItems.push({
 
@@ -77,22 +77,24 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
     }
 
-    console.log(amount);
-
     if (cart.items.length > 0) {
+
+      if (!source) return errorJson(res, 400, "Source not provided")
 
       const charge = await stripe.charges.create({
 
         amount, currency: "usd",
 
-        source, receipt_email: email
+        source, receipt_email
 
       })
 
-      if (!charge) throw new Error('bats-payment')
+      if (!charge) return errorJson(res, 502, "Stripe Charge Creation Failed")
 
       if (charge) {
 
+        console.log(charge);
+        
         const order = await Order.create({
 
           owner: user._id, items: orderItems
@@ -109,7 +111,7 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
     } else {
 
-      return errorJson(res, 500)
+      return errorJson(res, 400, "Cart is Empty")
 
     }
 

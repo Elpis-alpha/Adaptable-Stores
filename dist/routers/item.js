@@ -38,16 +38,14 @@ router.get('/api/items/get-all', (req, res) => __awaiter(void 0, void 0, void 0,
         // @ts-ignore
         sort[query[0]] = query[1];
     }
+    // @ts-ignore
+    const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
+    // @ts-ignore
+    const skip = req.query.skip ? parseInt(req.query.skip) : undefined;
     try {
-        yield Item_1.default.find({}, {
-            // @ts-ignore
-            limit: parseInt(req.query.limit),
-            // @ts-ignore
-            skip: parseInt(req.query.skip),
-            sort
-        });
+        const items = yield Item_1.default.find({}).limit(limit).skip(skip);
         // @ts-ignore
-        res.send(req.user.items);
+        res.send(items);
     }
     catch (error) {
         return (0, errors_1.errorJson)(res, 500);
@@ -75,13 +73,11 @@ router.patch('/api/items/update', item_auth_1.default, (req, res) => __awaiter(v
     if (!isValidOp)
         return res.status(400).send({ error: 'Invalid Updates', allowedUpdates: allowedUpdate });
     try {
-        // @ts-ignore
-        const user = req.user;
-        const item = yield Item_1.default.findOne({ _id, owner: user._id });
+        const item = yield Item_1.default.findOne({ _id });
         if (!item)
-            return (0, errors_1.errorJson)(res, 404);
+            return (0, errors_1.errorJson)(res, 404, "Product (Item) not found");
         // @ts-ignore
-        updates.forEach(item => item[item] = req.body[item]);
+        updates.forEach(up => item[up] = req.body[up]);
         yield item.save();
         res.status(201).send(item);
     }
@@ -95,7 +91,7 @@ router.delete('/api/items/delete', item_auth_1.default, (req, res) => __awaiter(
     try {
         const item = yield Item_1.default.findOneAndDelete({ _id });
         if (!item)
-            return (0, errors_1.errorJson)(res, 404);
+            return (0, errors_1.errorJson)(res, 404, "Product (Item) not found");
         res.send(item);
     }
     catch (error) {

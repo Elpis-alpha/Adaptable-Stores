@@ -44,6 +44,8 @@ router.post('/api/users/create', async (req, res) => {
 
     const cart = new Cart({ items: [], owner: user._id })
 
+    await cart.save()
+
     const token = await user.generateAuthToken()
 
     const verifyUser = await user.sendVerificationEmail()

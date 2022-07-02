@@ -13,6 +13,10 @@ const itemSchema = new mongoose_1.default.Schema({
     category: {
         type: String,
         required: true,
+        enum: {
+            values: ["Cloth", "Book", "Shoe", "Cosmetic"],
+            message: `{VALUE} is not supported`
+        },
         trim: true,
     },
     description: {
@@ -21,6 +25,7 @@ const itemSchema = new mongoose_1.default.Schema({
         required: true,
     },
     price: {
+        required: true,
         type: Number,
         min: 1
     },

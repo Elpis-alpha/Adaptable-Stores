@@ -8,21 +8,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const Order = require('../models/Order');
-const { errorJson } = require('./errors');
+const Order_1 = __importDefault(require("../models/Order"));
+const errors_1 = require("./errors");
 const authOrder = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // @ts-ignore
-        const order = yield Order.find({ owner: req.user._id }).sort({ createdAt: -1 });
+        const order = yield Order_1.default.find({ owner: req.user._id }).sort({ createdAt: -1 });
         if (!order)
-            return errorJson(res, 404);
+            return (0, errors_1.errorJson)(res, 404);
         // @ts-ignore
         req.order = order;
         next();
     }
     catch (error) {
-        return errorJson(res, 404);
+        console.log(error);
+        return (0, errors_1.errorJson)(res, 404);
     }
 });
 exports.default = authOrder;

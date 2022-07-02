@@ -1,17 +1,18 @@
-const Cart = require('../models/Cart')
-
-const { errorJson } = require('./errors')
-
 import { Response, Request, NextFunction } from 'express';
+
+import { errorJson } from './errors';
+
+import Cart from '../models/Cart';
+
 
 const authCart = async (req: Request, res: Response, next: NextFunction) => {
 
   try {
 
     // @ts-ignore
-    const cart = await Cart.find({ owner: req.user._id })
+    const cart = await Cart.findOne({ owner: req.user._id })
 
-    if (!cart) return errorJson(res, 404)
+    if (!cart) return errorJson(res, 404, "Cart not Available")
 
     // @ts-ignore
     req.cart = cart

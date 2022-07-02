@@ -38,7 +38,7 @@ router.post('/api/cart/add', auth, cartAuth, async (req, res) => {
 
     if (!item) return res.status(404).send()
 
-    const uItem = cart.items.find(itemX => item._id === itemX.productID)
+    const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID)
 
     if (uItem) {
 
@@ -74,14 +74,31 @@ router.post('/api/cart/add', auth, cartAuth, async (req, res) => {
 // Sends delete request to remove item from cart
 router.delete('/api/cart/remove', auth, cartAuth, async (req, res) => {
 
-  const _id = req.query._id
-
   try {
 
     // @ts-ignore
     const cart: MyCart = req.cart
 
-    cart.items = cart.items.filter(item => item.productID !== _id)
+    const { _id, qty } = req.body
+
+    // @ts-ignore
+    const item: MyItem = await Item.findOne({ _id })
+
+    const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID)
+
+    if (uItem) {
+
+      if (uItem.quantity <= qty) {
+        
+        cart.items = cart.items.filter(item => item.productID !== _id)
+        
+      } else {
+        
+        uItem.quantity = uItem.quantity - qty
+
+      }
+
+    }
 
     await cart.save()
 
