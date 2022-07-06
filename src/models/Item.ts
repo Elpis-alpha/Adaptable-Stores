@@ -10,9 +10,11 @@ const itemSchema = new mongoose.Schema({
 
     trim: true,
 
+    unique: true,
+
   },
 
-  category: { // Clothes, Books, Shoes, Cosmetics
+  section: { // Clothes, Shoes, Cosmetics
 
     type: String,
 
@@ -20,7 +22,7 @@ const itemSchema = new mongoose.Schema({
 
     enum: {
 
-      values: ["Cloth", "Book", "Shoe", "Cosmetic"],
+      values: ["Cloth", "Shoe", "Cosmetic"],
 
       message: `{VALUE} is not supported`
 
@@ -46,7 +48,7 @@ const itemSchema = new mongoose.Schema({
 
     type: Number,
 
-    min: 1
+    min: 0
 
   },
 

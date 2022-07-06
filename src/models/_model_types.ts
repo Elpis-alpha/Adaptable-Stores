@@ -58,7 +58,7 @@ export interface MyItem {
 
   title: string,
 
-  category: string,
+  section: string,
 
   description: string,
 

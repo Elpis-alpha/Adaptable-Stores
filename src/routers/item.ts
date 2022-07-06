@@ -7,6 +7,7 @@ import Item from '../models/Item'
 import itemAuth from '../middleware/item-auth'
 
 import { errorJson } from '../middleware/errors'
+import { isArray } from 'util'
 
 
 const router: Router = express.Router()
@@ -15,17 +16,35 @@ const router: Router = express.Router()
 // Sends post request to create items
 router.post('/api/items/create', itemAuth, async (req, res) => {
 
-  const newItem: MyItem = new Item(req.body)
+  if (isArray(req.body)) {
 
-  try {
+    try {
 
-    await newItem.save()
+      const allItems = Item.insertMany(req.body)
 
-    res.status(201).send(newItem)
+      res.status(201).send(allItems)
 
-  } catch (error) {
+    } catch (error) {
 
-    return errorJson(res, 400)
+      return errorJson(res, 400)
+
+    }
+
+  } else {
+
+    try {
+
+      const newItem: MyItem = new Item(req.body)
+
+      await newItem.save()
+
+      res.status(201).send(newItem)
+
+    } catch (error) {
+
+      return errorJson(res, 400)
+
+    }
 
   }
 
@@ -49,6 +68,19 @@ router.get('/api/items/get-all', async (req, res) => {
 
   }
 
+  // Section Setup
+  const section = req.query.section ? req.query.section : "All"
+
+  let sectionData = section === "All" ? {} : { section }
+
+  // Filter Data
+  const filter = typeof req.query.filter === "string" ? new RegExp(req.query.filter, 'i') : undefined
+
+  const filterData = filter ? { $or: [{ title: { $regex: filter } }, { description: { $regex: filter } }], ...sectionData } : {}
+
+  sectionData = filter ? {} : sectionData
+
+
   // @ts-ignore
   const limit: any = req.query.limit ? parseInt(req.query.limit) : undefined
 
@@ -57,12 +89,13 @@ router.get('/api/items/get-all', async (req, res) => {
 
   try {
 
-    const items: MyItem[] = await Item.find({}).limit(limit).skip(skip)
+    const items: MyItem[] = await Item.find({ ...sectionData, ...filterData }).limit(limit).skip(skip)
 
-    // @ts-ignore
-    res.send(items) 
+    res.send(items)
 
   } catch (error) {
+
+    console.log(error);
 
     return errorJson(res, 500)
 
@@ -100,7 +133,7 @@ router.patch('/api/items/update', itemAuth, async (req, res) => {
 
   const updates = Object.keys(req.body)
 
-  const allowedUpdate = ['title', 'description', 'category', 'price']
+  const allowedUpdate = ['title', 'description', 'section', 'price']
 
   const isValidOp = updates.every(item => allowedUpdate.includes(item))
 

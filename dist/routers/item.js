@@ -16,16 +16,28 @@ const express_1 = __importDefault(require("express"));
 const Item_1 = __importDefault(require("../models/Item"));
 const item_auth_1 = __importDefault(require("../middleware/item-auth"));
 const errors_1 = require("../middleware/errors");
+const util_1 = require("util");
 const router = express_1.default.Router();
 // Sends post request to create items
 router.post('/api/items/create', item_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const newItem = new Item_1.default(req.body);
-    try {
-        yield newItem.save();
-        res.status(201).send(newItem);
+    if ((0, util_1.isArray)(req.body)) {
+        try {
+            const allItems = Item_1.default.insertMany(req.body);
+            res.status(201).send(allItems);
+        }
+        catch (error) {
+            return (0, errors_1.errorJson)(res, 400);
+        }
     }
-    catch (error) {
-        return (0, errors_1.errorJson)(res, 400);
+    else {
+        try {
+            const newItem = new Item_1.default(req.body);
+            yield newItem.save();
+            res.status(201).send(newItem);
+        }
+        catch (error) {
+            return (0, errors_1.errorJson)(res, 400);
+        }
     }
 }));
 // Sends get request to get all items
@@ -38,16 +50,23 @@ router.get('/api/items/get-all', (req, res) => __awaiter(void 0, void 0, void 0,
         // @ts-ignore
         sort[query[0]] = query[1];
     }
+    // Section Setup
+    const section = req.query.section ? req.query.section : "All";
+    let sectionData = section === "All" ? {} : { section };
+    // Filter Data
+    const filter = typeof req.query.filter === "string" ? new RegExp(req.query.filter, 'i') : undefined;
+    const filterData = filter ? Object.assign({ $or: [{ title: { $regex: filter } }, { description: { $regex: filter } }] }, sectionData) : {};
+    sectionData = filter ? {} : sectionData;
     // @ts-ignore
     const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
     // @ts-ignore
     const skip = req.query.skip ? parseInt(req.query.skip) : undefined;
     try {
-        const items = yield Item_1.default.find({}).limit(limit).skip(skip);
-        // @ts-ignore
+        const items = yield Item_1.default.find(Object.assign(Object.assign({}, sectionData), filterData)).limit(limit).skip(skip);
         res.send(items);
     }
     catch (error) {
+        console.log(error);
         return (0, errors_1.errorJson)(res, 500);
     }
 }));
@@ -68,7 +87,7 @@ router.get('/api/items/get', (req, res) => __awaiter(void 0, void 0, void 0, fun
 router.patch('/api/items/update', item_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const _id = req.query._id;
     const updates = Object.keys(req.body);
-    const allowedUpdate = ['title', 'description', 'category', 'price'];
+    const allowedUpdate = ['title', 'description', 'section', 'price'];
     const isValidOp = updates.every(item => allowedUpdate.includes(item));
     if (!isValidOp)
         return res.status(400).send({ error: 'Invalid Updates', allowedUpdates: allowedUpdate });
