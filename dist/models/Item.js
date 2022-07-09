@@ -33,7 +33,13 @@ const itemSchema = new mongoose_1.default.Schema({
     pictures: [
         {
             image: {
-                type: Buffer
+                type: Buffer,
+                required: true
+            },
+            order: {
+                type: Number,
+                required: true,
+                default: 10
             }
         }
     ],

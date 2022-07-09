@@ -64,7 +64,7 @@ export interface MyItem {
 
   price: number,
 
-  pictures: Buffer[],
+  pictures: { _id?: string, image: Buffer, order: number }[],
 
   toJSON: () => Object,
 

@@ -294,9 +294,6 @@ router.post('/api/users/avatar/upload', auth, upload.single('avatar'), async (re
 
   } catch (error) {
 
-    console.log(error);
-    
-
     return errorJson(res, 400)
 
   }

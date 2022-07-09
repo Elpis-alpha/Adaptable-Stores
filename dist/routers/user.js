@@ -180,7 +180,6 @@ router.post('/api/users/avatar/upload', auth_1.default, upload.single('avatar'),
         res.send({ message: 'Image Saved' });
     }
     catch (error) {
-        console.log(error);
         return (0, errors_1.errorJson)(res, 400);
     }
     // @ts-ignore

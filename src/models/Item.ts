@@ -58,7 +58,19 @@ const itemSchema = new mongoose.Schema({
 
       image: {
 
-        type: Buffer
+        type: Buffer,
+
+        required: true
+
+      },
+
+      order: {
+
+        type: Number,
+
+        required: true,
+
+        default: 10
 
       }
 
