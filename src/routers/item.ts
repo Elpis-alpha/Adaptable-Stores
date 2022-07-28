@@ -126,7 +126,7 @@ router.get('/api/items/get-all', async (req, res) => {
 
   try {
 
-    const items: MyItem[] = await Item.find({ ...sectionData, ...filterData }).limit(limit).skip(skip)
+    const items: MyItem[] = await Item.find({ ...sectionData, ...filterData }).limit(limit).skip(skip).sort(sort)
 
     // Retreive Picture data
     const exportData = items.map(item => itemWithPics(item))

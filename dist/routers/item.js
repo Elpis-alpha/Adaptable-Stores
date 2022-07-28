@@ -81,7 +81,7 @@ router.get('/api/items/get-all', (req, res) => __awaiter(void 0, void 0, void 0,
     // @ts-ignore
     const skip = req.query.skip ? parseInt(req.query.skip) : undefined;
     try {
-        const items = yield Item_1.default.find(Object.assign(Object.assign({}, sectionData), filterData)).limit(limit).skip(skip);
+        const items = yield Item_1.default.find(Object.assign(Object.assign({}, sectionData), filterData)).limit(limit).skip(skip).sort(sort);
         // Retreive Picture data
         const exportData = items.map(item => itemWithPics(item));
         res.send(exportData);
