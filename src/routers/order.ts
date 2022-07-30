@@ -28,7 +28,7 @@ const stripe = new Stripe(stripeKey, {
 })
 
 // Sends get request to get a order
-router.get('/api/order/get', auth, orderAuth, async (req, res) => {  
+router.get('/api/order/get', auth, orderAuth, async (req, res) => {
 
   // @ts-ignore
   res.send(req.order)
@@ -57,23 +57,9 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
     for await (const item of cart.items) {
 
-      const product: (MyItem | null) = await Item.findOne({ _id: item.productID })
+      orderItems.push({ ...item })
 
-      if (!product) continue
-
-      orderItems.push({
-
-        productID: product._id,
-
-        name: product.title,
-
-        quantity: item.quantity,
-
-        price: product.price
-
-      })
-
-      amount += (product.price * item.quantity)
+      amount += item.price
 
     }
 
@@ -94,7 +80,7 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
       if (charge) {
 
         console.log(charge);
-        
+
         const order = await Order.create({
 
           owner: user._id, items: orderItems

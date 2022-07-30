@@ -256,6 +256,8 @@ router.delete('/api/users/delete', auth, async (req, res) => {
 
     await User.deleteOne({ _id: user._id })
 
+    await Cart.deleteOne({ owner: user._id })
+
     res.send({ message: 'user deleted' })
 
   } catch (error) {

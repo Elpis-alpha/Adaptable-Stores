@@ -24,7 +24,6 @@ const stripe_1 = __importDefault(require("stripe"));
 const auth_1 = __importDefault(require("../middleware/auth"));
 const order_auth_1 = __importDefault(require("../middleware/order-auth"));
 const cart_auth_1 = __importDefault(require("../middleware/cart-auth"));
-const Item_1 = __importDefault(require("../models/Item"));
 const Order_1 = __importDefault(require("../models/Order"));
 const errors_1 = require("../middleware/errors");
 const router = express_1.default.Router();
@@ -52,16 +51,8 @@ router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) =>
         try {
             for (var _b = __asyncValues(cart.items), _c; _c = yield _b.next(), !_c.done;) {
                 const item = _c.value;
-                const product = yield Item_1.default.findOne({ _id: item.productID });
-                if (!product)
-                    continue;
-                orderItems.push({
-                    productID: product._id,
-                    name: product.title,
-                    quantity: item.quantity,
-                    price: product.price
-                });
-                amount += (product.price * item.quantity);
+                orderItems.push(Object.assign({}, item));
+                amount += item.price;
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }

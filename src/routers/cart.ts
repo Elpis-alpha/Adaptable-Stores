@@ -33,16 +33,20 @@ router.post('/api/cart/add', auth, cartAuth, async (req, res) => {
 
     const { _id, qty } = req.body
 
-    // @ts-ignore
-    const item: MyItem = await Item.findOne({ _id })
+    if (qty <= 0) return errorJson(res, 400, "Quantity must be greater than zero")
 
-    if (!item) return res.status(404).send()
+    // @ts-ignore
+    const item: MyItem = await Item.findById(_id) //.findOne({ _id })
+
+    if (!item) return errorJson(res, 404, "Item not found")
 
     const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID)
 
     if (uItem) {
 
       uItem.quantity = uItem.quantity + qty
+
+      uItem.price = uItem.price + (item.price * qty)
 
     } else {
 
@@ -52,7 +56,9 @@ router.post('/api/cart/add', auth, cartAuth, async (req, res) => {
 
         name: item.title,
 
-        quantity: qty
+        quantity: qty,
+
+        price: item.price * qty
 
       })
 
@@ -81,8 +87,12 @@ router.delete('/api/cart/remove', auth, cartAuth, async (req, res) => {
 
     const { _id, qty } = req.body
 
+    if (qty <= 0) return errorJson(res, 400, "Quantity must be greater than zero")
+    
+
     // @ts-ignore
-    const item: MyItem = await Item.findOne({ _id })
+    const item: MyItem = await Item.findById({ _id })
+    
 
     const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID)
 
@@ -93,6 +103,8 @@ router.delete('/api/cart/remove', auth, cartAuth, async (req, res) => {
         cart.items = cart.items.filter(item => item.productID !== _id)
         
       } else {
+        
+        uItem.price = uItem.price - ((uItem.price / uItem.quantity) * qty)
         
         uItem.quantity = uItem.quantity - qty
 
@@ -105,6 +117,8 @@ router.delete('/api/cart/remove', auth, cartAuth, async (req, res) => {
     res.send(cart)
 
   } catch (error) {
+
+    console.log(error);
 
     return errorJson(res, 500)
 

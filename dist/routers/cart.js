@@ -29,19 +29,23 @@ router.post('/api/cart/add', auth_1.default, cart_auth_1.default, (req, res) => 
         // @ts-ignore
         const cart = req.cart;
         const { _id, qty } = req.body;
+        if (qty <= 0)
+            return (0, errors_1.errorJson)(res, 400, "Quantity must be greater than zero");
         // @ts-ignore
-        const item = yield Item_1.default.findOne({ _id });
+        const item = yield Item_1.default.findById(_id); //.findOne({ _id })
         if (!item)
-            return res.status(404).send();
+            return (0, errors_1.errorJson)(res, 404, "Item not found");
         const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID);
         if (uItem) {
             uItem.quantity = uItem.quantity + qty;
+            uItem.price = uItem.price + (item.price * qty);
         }
         else {
             cart.items.push({
                 productID: _id,
                 name: item.title,
-                quantity: qty
+                quantity: qty,
+                price: item.price * qty
             });
         }
         yield cart.save();
@@ -57,14 +61,17 @@ router.delete('/api/cart/remove', auth_1.default, cart_auth_1.default, (req, res
         // @ts-ignore
         const cart = req.cart;
         const { _id, qty } = req.body;
+        if (qty <= 0)
+            return (0, errors_1.errorJson)(res, 400, "Quantity must be greater than zero");
         // @ts-ignore
-        const item = yield Item_1.default.findOne({ _id });
+        const item = yield Item_1.default.findById({ _id });
         const uItem = cart.items.find(itemX => item._id.toString() === itemX.productID);
         if (uItem) {
             if (uItem.quantity <= qty) {
                 cart.items = cart.items.filter(item => item.productID !== _id);
             }
             else {
+                uItem.price = uItem.price - ((uItem.price / uItem.quantity) * qty);
                 uItem.quantity = uItem.quantity - qty;
             }
         }
@@ -72,6 +79,7 @@ router.delete('/api/cart/remove', auth_1.default, cart_auth_1.default, (req, res
         res.send(cart);
     }
     catch (error) {
+        console.log(error);
         return (0, errors_1.errorJson)(res, 500);
     }
 }));

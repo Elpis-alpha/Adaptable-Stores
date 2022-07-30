@@ -22,6 +22,11 @@ const cartSchema = new mongoose_1.default.Schema({
                 min: 1,
                 default: 1
             },
+            price: {
+                type: Number,
+                required: true,
+                min: 1,
+            }
         }
     ],
 }, { timestamps: true });

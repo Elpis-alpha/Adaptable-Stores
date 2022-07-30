@@ -42,7 +42,9 @@ export interface MyCart {
 
     name: string,
 
-    quantity: number
+    quantity: number,
+
+    price: number
 
   }[],
 

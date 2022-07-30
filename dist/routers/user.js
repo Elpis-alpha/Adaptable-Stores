@@ -157,6 +157,7 @@ router.delete('/api/users/delete', auth_1.default, (req, res) => __awaiter(void 
         const user = req.user;
         yield user.sendExitEmail();
         yield User_1.default.deleteOne({ _id: user._id });
+        yield Cart_1.default.deleteOne({ owner: user._id });
         res.send({ message: 'user deleted' });
     }
     catch (error) {
