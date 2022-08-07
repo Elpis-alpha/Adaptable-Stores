@@ -99,7 +99,7 @@ router.get('/api/items/get', (req, res) => __awaiter(void 0, void 0, void 0, fun
             return (0, errors_1.errorJson)(res, 400, "No _id provided");
         const item = yield Item_1.default.findOne({ _id });
         if (!item)
-            return res.status(404).send();
+            return (0, errors_1.errorJson)(res, 404);
         res.send(itemWithPics(item));
     }
     catch (error) {

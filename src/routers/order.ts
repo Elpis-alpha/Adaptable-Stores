@@ -8,13 +8,11 @@ import orderAuth from '../middleware/order-auth'
 
 import cartAuth from '../middleware/cart-auth'
 
-import Item from '../models/Item'
-
 import Order from '../models/Order'
 
 import { errorJson } from '../middleware/errors'
 
-import { MyCart, MyItem, MyUser } from '../models/_model_types'
+import { MyCart, MyUser } from '../models/_model_types'
 
 
 const router: Router = express.Router()

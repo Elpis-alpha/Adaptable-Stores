@@ -155,7 +155,7 @@ router.get('/api/items/get', async (req, res) => {
 
     const item: (MyItem | null) = await Item.findOne({ _id })
 
-    if (!item) return res.status(404).send()
+    if (!item) return errorJson(res, 404)
 
     res.send(itemWithPics(item))
 
