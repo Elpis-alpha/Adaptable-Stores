@@ -43,6 +43,14 @@ const orderSchema = new mongoose.Schema({
 
   ],
 
+  data: {
+
+    type: Object,
+
+    required: true,
+
+  }
+
 }, { timestamps: true })
 
 // Order Model

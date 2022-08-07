@@ -34,8 +34,8 @@ router.get('/api/order/get', auth, orderAuth, async (req, res) => {
 })
 
 
-// Sends post request to add item to order
-router.post('/api/order/add', auth, cartAuth, async (req, res) => {
+// Sends post request to add item to order with stripe
+router.post('/api/order/add-stripe', auth, cartAuth, async (req, res) => {
 
   try {
 
@@ -57,7 +57,7 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
       orderItems.push({ ...item })
 
-      amount += item.price
+      amount += item.price * 100
 
     }
 
@@ -69,7 +69,7 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
         amount, currency: "usd",
 
-        source, receipt_email
+        source: source.id, receipt_email
 
       })
 
@@ -77,11 +77,17 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
       if (charge) {
 
-        console.log(charge);
-
         const order = await Order.create({
 
-          owner: user._id, items: orderItems
+          owner: user._id, items: orderItems, 
+          
+          data: {
+
+            gateway: "stripe",
+    
+            info: { source, charge }
+    
+          }
 
         })
 
@@ -89,7 +95,7 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
 
         await cart.save()
 
-        return res.status(200).send(order)
+        return res.status(200).send({ order, cart })
 
       }
 
@@ -98,6 +104,50 @@ router.post('/api/order/add', auth, cartAuth, async (req, res) => {
       return errorJson(res, 400, "Cart is Empty")
 
     }
+
+  } catch (error) {
+
+    console.log(error);
+
+    return errorJson(res, 500)
+
+  }
+
+})
+
+
+// Sends post request to add item to order with stripe
+router.post('/api/order/add-paypal', auth, cartAuth, async (req, res) => {
+
+  try {
+
+    // @ts-ignore
+    const cart: MyCart = req.cart
+
+    // @ts-ignore
+    const user: MyUser = req.user
+
+    const { data } = req.body
+
+    const orderItems = []
+
+    for await (const item of cart.items) {
+
+      orderItems.push({ ...item })
+
+    }
+
+    const order = await Order.create({
+
+      owner: user._id, items: orderItems, data
+
+    })
+
+    cart.items = []
+
+    await cart.save()
+
+    return res.status(200).send({ order, cart })
 
   } catch (error) {
 

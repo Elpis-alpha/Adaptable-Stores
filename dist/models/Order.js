@@ -25,6 +25,10 @@ const orderSchema = new mongoose_1.default.Schema({
             price: Number
         }
     ],
+    data: {
+        type: Object,
+        required: true,
+    }
 }, { timestamps: true });
 // Order Model
 const Order = mongoose_1.default.model('Order', orderSchema);

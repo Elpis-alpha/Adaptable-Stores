@@ -36,8 +36,8 @@ router.get('/api/order/get', auth_1.default, order_auth_1.default, (req, res) =>
     // @ts-ignore
     res.send(req.order);
 }));
-// Sends post request to add item to order
-router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// Sends post request to add item to order with stripe
+router.post('/api/order/add-stripe', auth_1.default, cart_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var e_1, _a;
     try {
         // @ts-ignore
@@ -52,7 +52,7 @@ router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) =>
             for (var _b = __asyncValues(cart.items), _c; _c = yield _b.next(), !_c.done;) {
                 const item = _c.value;
                 orderItems.push(Object.assign({}, item));
-                amount += item.price;
+                amount += item.price * 100;
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -67,23 +67,61 @@ router.post('/api/order/add', auth_1.default, cart_auth_1.default, (req, res) =>
                 return (0, errors_1.errorJson)(res, 400, "Source not provided");
             const charge = yield stripe.charges.create({
                 amount, currency: "usd",
-                source, receipt_email
+                source: source.id, receipt_email
             });
             if (!charge)
                 return (0, errors_1.errorJson)(res, 502, "Stripe Charge Creation Failed");
             if (charge) {
-                console.log(charge);
                 const order = yield Order_1.default.create({
-                    owner: user._id, items: orderItems
+                    owner: user._id, items: orderItems,
+                    data: {
+                        gateway: "stripe",
+                        info: { source, charge }
+                    }
                 });
                 cart.items = [];
                 yield cart.save();
-                return res.status(200).send(order);
+                return res.status(200).send({ order, cart });
             }
         }
         else {
             return (0, errors_1.errorJson)(res, 400, "Cart is Empty");
         }
+    }
+    catch (error) {
+        console.log(error);
+        return (0, errors_1.errorJson)(res, 500);
+    }
+}));
+// Sends post request to add item to order with stripe
+router.post('/api/order/add-paypal', auth_1.default, cart_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var e_2, _d;
+    try {
+        // @ts-ignore
+        const cart = req.cart;
+        // @ts-ignore
+        const user = req.user;
+        const { data } = req.body;
+        const orderItems = [];
+        try {
+            for (var _e = __asyncValues(cart.items), _f; _f = yield _e.next(), !_f.done;) {
+                const item = _f.value;
+                orderItems.push(Object.assign({}, item));
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (_f && !_f.done && (_d = _e.return)) yield _d.call(_e);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+        const order = yield Order_1.default.create({
+            owner: user._id, items: orderItems, data
+        });
+        cart.items = [];
+        yield cart.save();
+        return res.status(200).send({ order, cart });
     }
     catch (error) {
         return (0, errors_1.errorJson)(res, 500);
