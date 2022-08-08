@@ -79,6 +79,7 @@ router.post('/api/order/add-stripe', auth_1.default, cart_auth_1.default, (req, 
                         info: { source, charge }
                     }
                 });
+                yield order.sendCheckoutMail();
                 cart.items = [];
                 yield cart.save();
                 return res.status(200).send({ order, cart });
@@ -119,6 +120,7 @@ router.post('/api/order/add-paypal', auth_1.default, cart_auth_1.default, (req, 
         const order = yield Order_1.default.create({
             owner: user._id, items: orderItems, data
         });
+        yield order.sendCheckoutMail();
         cart.items = [];
         yield cart.save();
         return res.status(200).send({ order, cart });

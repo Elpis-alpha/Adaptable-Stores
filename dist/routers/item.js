@@ -59,6 +59,10 @@ router.post('/api/items/create', item_auth_1.default, (req, res) => __awaiter(vo
         }
     }
 }));
+// Sends get request to authenticate admin
+router.get('/api/items/verify', item_auth_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.status(200).send({ message: 'password correct' });
+}));
 // Sends get request to get all items
 router.get('/api/items/get-all', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const sort = {};
@@ -94,10 +98,11 @@ router.get('/api/items/get-all', (req, res) => __awaiter(void 0, void 0, void 0,
 // Sends get request to get a specific item
 router.get('/api/items/get', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const _id = req.query._id;
+    const title = req.query.title;
     try {
-        if (typeof _id !== "string")
+        if (!(typeof _id === "string" || typeof title === "string"))
             return (0, errors_1.errorJson)(res, 400, "No _id provided");
-        const item = yield Item_1.default.findOne({ _id });
+        const item = typeof _id === "string" ? yield Item_1.default.findOne({ _id }) : yield Item_1.default.findOne({ title });
         if (!item)
             return (0, errors_1.errorJson)(res, 404);
         res.send(itemWithPics(item));
@@ -203,7 +208,12 @@ router.delete('/api/items/pictures/remove', item_auth_1.default, (req, res) => _
             return (0, errors_1.errorJson)(res, 404, "Product (Item) not found");
         if (typeof picID !== "string")
             return (0, errors_1.errorJson)(res, 400, "No picID provided");
-        item.pictures = item.pictures.filter(item => { var _a; return ((_a = item._id) === null || _a === void 0 ? void 0 : _a.toString()) !== picID; });
+        if (picID === "all") {
+            item.pictures = [];
+        }
+        else {
+            item.pictures = item.pictures.filter(item => { var _a; return ((_a = item._id) === null || _a === void 0 ? void 0 : _a.toString()) !== picID; });
+        }
         yield item.save();
         res.send({ message: 'picture removed' });
     }

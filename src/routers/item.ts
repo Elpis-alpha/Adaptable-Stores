@@ -88,6 +88,14 @@ router.post('/api/items/create', itemAuth, async (req, res) => {
 })
 
 
+// Sends get request to authenticate admin
+router.get('/api/items/verify', itemAuth, async (req, res) => {
+
+  res.status(200).send({ message: 'password correct' })
+
+})
+
+
 // Sends get request to get all items
 router.get('/api/items/get-all', async (req, res) => {
 
@@ -149,11 +157,13 @@ router.get('/api/items/get', async (req, res) => {
 
   const _id = req.query._id
 
+  const title = req.query.title
+
   try {
 
-    if (typeof _id !== "string") return errorJson(res, 400, "No _id provided")
+    if (!(typeof _id === "string" || typeof title === "string")) return errorJson(res, 400, "No _id provided")
 
-    const item: (MyItem | null) = await Item.findOne({ _id })
+    const item: (MyItem | null) = typeof _id === "string" ? await Item.findOne({ _id }) : await Item.findOne({ title })
 
     if (!item) return errorJson(res, 404)
 
@@ -326,7 +336,16 @@ router.delete('/api/items/pictures/remove', itemAuth, async (req, res) => {
 
     if (typeof picID !== "string") return errorJson(res, 400, "No picID provided")
 
-    item.pictures = item.pictures.filter(item => item._id?.toString() !== picID)
+    if (picID === "all") {
+
+      item.pictures = []
+
+    } else {
+
+      item.pictures = item.pictures.filter(item => item._id?.toString() !== picID)
+
+    }
+
 
     await item.save()
 
@@ -351,7 +370,7 @@ router.get('/api/items/pictures/view', async (req, res) => {
   try {
 
     if (typeof _id !== "string") return errorJson(res, 400, "No _id provided")
-    
+
     const item: (MyItem | null) = await Item.findOne({ _id })
 
     if (!item) return errorJson(res, 404, "Product (Item) not found")

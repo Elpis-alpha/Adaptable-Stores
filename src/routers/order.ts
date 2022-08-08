@@ -79,17 +79,19 @@ router.post('/api/order/add-stripe', auth, cartAuth, async (req, res) => {
 
         const order = await Order.create({
 
-          owner: user._id, items: orderItems, 
-          
+          owner: user._id, items: orderItems,
+
           data: {
 
             gateway: "stripe",
-    
+
             info: { source, charge }
-    
+
           }
 
         })
+
+        await order.sendCheckoutMail()
 
         cart.items = []
 
@@ -142,6 +144,8 @@ router.post('/api/order/add-paypal', auth, cartAuth, async (req, res) => {
       owner: user._id, items: orderItems, data
 
     })
+
+    await order.sendCheckoutMail()
 
     cart.items = []
 
